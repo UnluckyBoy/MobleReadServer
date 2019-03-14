@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--     
+    namespace：必须与对应的接口全类名一致  UserMapper.java  
+    id ：必须与对应接口的某个对应的方法名一致即必须要和UserMapper.java接口中的方法同名。  
+ -->
+ <mapper namespace="com.global.mapper.ServerMapper">
+    <!-- 用户注册 -->
+    <insert id="register" parameterType="java.util.HashMap">
+        insert into login (user_account,user_pwd) values (#{account},#{password})
+    </insert>
+    <!-- 用户登录 -->
+    <select id="login" parameterType="java.util.HashMap" resultType="User">
+        select * from login where user_account=#{account} and user_pwd=#{password}
+    </select>
+    <!-- 获取用户信息 -->
+    <select id="getUser" parameterType="java.lang.String" resultType="User">
+         select user_name,user_account,user_pwd,user_sex,user_head from login where user_account=#{account}
+    </select>
+    <!-- 加载全部书籍 -->
+    <select id="getAllBook" resultType="Book">
+        select Id,name,pic,writer,type,hot from textmessage
+    </select>
+    <!-- 书名或作者查询 -->
+    <select id="searchBook" parameterType="java.lang.String" resultType="Book">
+        select * from textmessage where name=#{Key} or writer=#{Key}
+    </select>
+    <!-- 书名查询、用于特殊用 -->
+    <select id="nameSearch" parameterType="java.lang.String" resultType="Book">
+        select * from textmessage where name=#{Key}
+    </select>
+    <!-- 书籍类型搜索 -->
+    <select id="typeSeach" parameterType="java.lang.String" resultType="Book">
+        select * from textmessage where type=#{Type}
+    </select>
+    <!-- 加载书籍内容 -->
+    <select id="getFile" parameterType="java.lang.String" resultType="BookFile">
+       select * from textfile where book_Id=#{KeyId}
+    </select>
+    <!-- 首页推荐 -->
+    <select id="getHot" resultType="Book">
+       select * from textmessage order by hot desc limit 9
+    </select>
+    <!-- 获取用户阅读记录 -->
+    <select id="getRecord" parameterType="java.lang.String" resultType="Record">
+        <!-- id升序 -->
+        <!-- select id,user_account,book_name from userrecord where user_account=#{account} order by id asc-->
+        <!-- id降序 -->
+        select id,user_account,book_name from userrecord where user_account=#{account} order by id desc
+        <!-- select * from textmessage where name in (select userrecord.book_name from userrecord where user_account=#{account})-->
+    </select>
+    <!-- 阅读量修改 -->
+    <update id="upHot" parameterType="Book">
+       update textmessage set hot=#{hot} where name=#{name}
+    </update>
+    <!-- 获得用户阅读历史的书籍类型 -->
+    <select id="getRecordType" parameterType="java.lang.String" resultType="java.lang.String">
+        select type from textmessage where name in (select name from textmessage 
+           where name in(select book_name from userrecord where user_account=#{account})) order by type limit 1
+    </select>
+    <!-- 特殊类型搜索:获取相同类型前三按阅读量 -->
+    <select id="Historytype" parameterType="java.lang.String" resultType="Book">
+        select * from textmessage where type=#{Type} order by hot desc limit 3
+    </select>
+    
+    <!--  用户account组合书名查询-->
+    <select id="IsRead" parameterType="java.util.HashMap" resultType="Record">
+       select id,user_account,book_name from userrecord where user_account=#{account} and book_name=#{name}
+    </select>
+    <!-- 查询用户是否首次登陆阅读 -->
+    <select id="IsFirstRead" parameterType="java.lang.String" resultType="Record">
+       select user_account from userrecord where user_account=#{account} limit 1
+    </select>
+    <!-- 添加用户阅读历史记录 -->
+    <insert id="upHistory" parameterType="java.util.HashMap">
+       insert into userrecord(user_account,book_name) values (#{account},#{name})
+    </insert>
+</mapper>
